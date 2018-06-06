@@ -3,7 +3,7 @@ using System.Collections.Generic;
 // ReSharper disable once CheckNamespace
 namespace DynamicData
 {
-    /// <summary>
+	/// <summary>
     /// A collection of changes.
     /// 
     /// Changes are always published in the order.

@@ -11,8 +11,8 @@ namespace DynamicData
     /// <summary>
     /// A collection of changes
     /// </summary>
-    public class ChangeSet<TObject, TKey> : IChangeSet<TObject, TKey>
-    {
+    public class ChangeSet<TObject, TKey> : IChangeSet<TObject, TKey>, IChangeSetListAccessor<TObject, TKey>
+	{
         private List<Change<TObject, TKey>> Items { get; } 
 
         /// <summary>
@@ -32,7 +32,16 @@ namespace DynamicData
         /// Initializes a new instance of the <see cref="ChangeSet{TObject, TKey}"/> class.
         /// </summary>
         /// <param name="items">The items.</param>
-        public ChangeSet([NotNull] IEnumerable<Change<TObject, TKey>> items)
+        public ChangeSet(List<Change<TObject, TKey>> items)
+        {
+            Items = items ?? throw new ArgumentNullException(nameof(items));
+        }
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ChangeSet{TObject, TKey}"/> class.
+		/// </summary>
+		/// <param name="items">The items.</param>
+		public ChangeSet([NotNull] IEnumerable<Change<TObject, TKey>> items)
         {
             if (items == null) throw new ArgumentNullException(nameof(items));
             Items = new List<Change<TObject, TKey>>(items);
@@ -103,10 +112,11 @@ namespace DynamicData
         {
             return GetEnumerator();
         }
+        
+	    List<Change<TObject, TKey>> IChangeSetListAccessor<TObject, TKey>.Items => Items;
 
-
-        /// <inheritdoc />
-        public override string ToString()
+		/// <inheritdoc />
+		public override string ToString()
         {
             return $"ChangeSet<{typeof(TObject).Name}.{typeof(TKey).Name}>. Count={Count}";
         }

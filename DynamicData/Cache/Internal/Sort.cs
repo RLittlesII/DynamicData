@@ -151,7 +151,7 @@ namespace DynamicData.Cache.Internal
                     sortReason = SortReason.Reset;
                 }
 
-                IChangeSet<TObject, TKey> changeSet;
+                List<Change<TObject, TKey>> changed;
                 switch (sortReason)
                 {
                     case SortReason.InitialLoad:
@@ -159,24 +159,24 @@ namespace DynamicData.Cache.Internal
                             //For the first batch, changes may have arrived before the comparer was set.
                             //therefore infer the first batch of changes from the cache
                             _calculator = new IndexCalculator<TObject, TKey>(_comparer, _optimisations);
-                            changeSet = _calculator.Load(_cache);
+                            changed = _calculator.Load(_cache);
                         }
                         break;
                     case SortReason.Reset:
                         {
                             _calculator.Reset(_cache);
-                            changeSet = changes;
+                            changed = ((IChangeSetListAccessor<TObject, TKey>)changes)?.Items;
                         }
                         break;
                     case SortReason.DataChanged:
                         {
-                            changeSet = _calculator.Calculate(changes);
+                            changed = _calculator.Calculate(changes);
                         }
                         break;
 
                     case SortReason.ComparerChanged:
                         {
-                            changeSet = _calculator.ChangeComparer(_comparer);
+                            changed = _calculator.ChangeComparer(_comparer);
                             if (_resetThreshold > 0 && _cache.Count >= _resetThreshold)
                             {
                                 sortReason = SortReason.Reset;
@@ -185,31 +185,31 @@ namespace DynamicData.Cache.Internal
                             else
                             {
                                 sortReason = SortReason.Reorder;
-                                changeSet =_calculator.Reorder();
+                                changed =_calculator.Reorder();
                             }
                         }
                         break;
 
                     case SortReason.Reorder:
                         {
-                            changeSet = _calculator.Reorder();
+                            changed = _calculator.Reorder();
                         }
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(sortReason));
                 }
 
-                Debug.Assert(changeSet != null, "changeSet != null");
+                Debug.Assert(changed != null, "changeSet != null");
                 if ((sortReason == SortReason.InitialLoad || sortReason == SortReason.DataChanged)
-                    && changeSet.Count == 0)
+                    && changed.Count == 0)
                 {
                     return null;
                 }
 
-                if (sortReason == SortReason.Reorder && changeSet.Count == 0) return null;
+                if (sortReason == SortReason.Reorder && changed.Count == 0) return null;
 
                 _sorted = new KeyValueCollection<TObject, TKey>(_calculator.List, _comparer, sortReason, _optimisations);
-                return new SortedChangeSet<TObject, TKey>(_sorted, changeSet);
+                return new SortedChangeSet<TObject, TKey>(_sorted, changed);
             }
         }
     }

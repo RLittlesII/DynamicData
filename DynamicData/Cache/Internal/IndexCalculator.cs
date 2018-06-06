@@ -14,13 +14,17 @@ namespace DynamicData.Cache.Internal
     {
         private KeyValueComparer<TObject, TKey> _comparer;
         private ImmutableList<KeyValuePair<TKey, TObject>> _list;
-
         private readonly SortOptimisations _optimisations;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="T:System.Object"/> class.
-        /// </summary>
-        public IndexCalculator(KeyValueComparer<TObject, TKey> comparer, SortOptimisations optimisations)
+        public IComparer<KeyValuePair<TKey, TObject>> Comparer => _comparer;
+        public ImmutableList<KeyValuePair<TKey, TObject>> List => _list;
+
+        private static readonly List<Change<TObject, TKey>> EmptyChanges = new List<Change<TObject, TKey>>();
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="T:System.Object"/> class.
+		/// </summary>
+		public IndexCalculator(KeyValueComparer<TObject, TKey> comparer, SortOptimisations optimisations)
         {
             _comparer = comparer;
             _optimisations = optimisations;
@@ -32,13 +36,13 @@ namespace DynamicData.Cache.Internal
         /// </summary>
         /// <param name="cache">The cache.</param>
         /// <returns></returns>
-        public IChangeSet<TObject, TKey> Load(ChangeAwareCache<TObject, TKey> cache)
+        public List<Change<TObject, TKey>> Load(ChangeAwareCache<TObject, TKey> cache)
         {
             //for the first batch of changes may have arrived before the comparer was set.
             //therefore infer the first batch of changes from the cache
             _list = cache.KeyValues.OrderBy(kv => kv, _comparer).ToImmutableList();
             var initialItems = _list.Select((t, index) => new Change<TObject, TKey>(ChangeReason.Add, t.Key, t.Value, index));
-            return new ChangeSet<TObject, TKey>(initialItems);
+            return initialItems.ToList();
         }
 
         /// <summary>
@@ -51,13 +55,13 @@ namespace DynamicData.Cache.Internal
             _list = cache.KeyValues.OrderBy(kv => kv, _comparer).ToImmutableList();
         }
 
-        public IChangeSet<TObject, TKey> ChangeComparer(KeyValueComparer<TObject, TKey> comparer)
+        public List<Change<TObject, TKey>> ChangeComparer(KeyValueComparer<TObject, TKey> comparer)
         {
             _comparer = comparer;
-            return ChangeSet<TObject, TKey>.Empty;
+            return EmptyChanges;
         }
 
-        public IChangeSet<TObject, TKey> Reorder()
+        public List<Change<TObject, TKey>> Reorder()
         {
             var result = new List<Change<TObject, TKey>>();
 
@@ -90,14 +94,14 @@ namespace DynamicData.Cache.Internal
                 }
             }
 
-            return new ChangeSet<TObject, TKey>(result);
+            return result;
         }
 
         /// <summary>
         /// Dynamic calculation of moved items which produce a result which can be enumerated through in order
         /// </summary>
         /// <returns></returns>
-        public IChangeSet<TObject, TKey> Calculate(IChangeSet<TObject, TKey> changes)
+        public List<Change<TObject, TKey>> Calculate(IChangeSet<TObject, TKey> changes)
         {
             var result = new List<Change<TObject, TKey>>(changes.Count);
             var refreshes = new List<Change<TObject, TKey>>(changes.Refreshes);
@@ -182,12 +186,10 @@ namespace DynamicData.Cache.Internal
                 }
             }
 
-            return new ChangeSet<TObject, TKey>(result);
+            return result;
         }
 
-        public IComparer<KeyValuePair<TKey, TObject>> Comparer => _comparer;
 
-        public ImmutableList<KeyValuePair<TKey, TObject>> List => _list;
 
         private int GetCurrentPosition(KeyValuePair<TKey, TObject> item)
         {
