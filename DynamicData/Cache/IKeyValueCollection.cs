@@ -1,12 +1,13 @@
+using System;
 using System.Collections.Generic;
 // ReSharper disable once CheckNamespace
 namespace DynamicData
 {
+
     /// <summary>
-    /// 
+    /// A sorted key value collection
     /// </summary>
-    /// <typeparam name="TObject">The type of the object.</typeparam>
-    /// <typeparam name="TKey">The type of the key.</typeparam>
+    [Obsolete("The concrete implementation  is now used instead")]
     public interface IKeyValueCollection<TObject, TKey> : IEnumerable<KeyValuePair<TKey, TObject>>
     {
         /// <summary>
@@ -49,7 +50,6 @@ namespace DynamicData
         /// The element at the specified index in the read-only list.
         /// </returns>
         /// <param name="index">The zero-based index of the element to get. </param>
-        /// <returns></returns>
         KeyValuePair<TKey, TObject> this[int index] { get; }
     }
 }

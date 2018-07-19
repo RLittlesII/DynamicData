@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 
@@ -74,7 +74,7 @@ namespace DynamicData.Cache.Internal
             private readonly int _resetThreshold;
 
             private KeyValueComparer<TObject, TKey> _comparer;
-            private IKeyValueCollection<TObject, TKey> _sorted = new KeyValueCollection<TObject, TKey>();
+            private KeyValueCollection<TObject, TKey> _sorted = new KeyValueCollection<TObject, TKey>();
             private bool _haveReceivedData = false;
             private bool _initialised = false;
             private IndexCalculator<TObject, TKey> _calculator;
@@ -112,7 +112,6 @@ namespace DynamicData.Cache.Internal
             /// <summary>
             /// Sorts all data using the current comparer
             /// </summary>
-            /// <returns></returns>
             public ISortedChangeSet<TObject, TKey> Sort()
             {
                 return DoSort(SortReason.Reorder);
@@ -121,11 +120,9 @@ namespace DynamicData.Cache.Internal
             /// <summary>
             /// Sorts using the specified sorter. Will return null if there are no changes
             /// </summary>
-            /// <param name="sortReason">The sort reason.</param>
-            /// <param name="changes">The changes.</param>
-            /// <returns></returns>
-            private ISortedChangeSet<TObject, TKey> DoSort(SortReason sortReason, IChangeSet<TObject, TKey> changes = null)
+            private ISortedChangeSet<TObject, TKey> DoSort(SortReason sortReason, IChangeSet<TObject, TKey> changeSet = null)
             {
+                var changes = changeSet.ToConcreteType();
                 if (changes != null)
                 {
                     _cache.Clone(changes);
@@ -137,9 +134,7 @@ namespace DynamicData.Cache.Internal
 
                 //if the comparer is not set, return nothing
                 if (_comparer == null || !_haveReceivedData)
-                {
                     return null;
-                }
 
                 if (!_initialised)
                 {
@@ -151,7 +146,7 @@ namespace DynamicData.Cache.Internal
                     sortReason = SortReason.Reset;
                 }
 
-                IChangeSet<TObject, TKey> changeSet;
+                changeSet = ChangeSet<TObject, TKey>.Empty;
                 switch (sortReason)
                 {
                     case SortReason.InitialLoad:
@@ -176,7 +171,7 @@ namespace DynamicData.Cache.Internal
 
                     case SortReason.ComparerChanged:
                         {
-                            changeSet = _calculator.ChangeComparer(_comparer);
+                            _calculator.ChangeComparer(_comparer);
                             if (_resetThreshold > 0 && _cache.Count >= _resetThreshold)
                             {
                                 sortReason = SortReason.Reset;
@@ -199,16 +194,13 @@ namespace DynamicData.Cache.Internal
                         throw new ArgumentOutOfRangeException(nameof(sortReason));
                 }
 
-                Debug.Assert(changeSet != null, "changeSet != null");
-                if ((sortReason == SortReason.InitialLoad || sortReason == SortReason.DataChanged)
-                    && changeSet.Count == 0)
-                {
+                if ((sortReason == SortReason.InitialLoad || sortReason == SortReason.DataChanged) && (changeSet?.Count ?? 0) == 0)
                     return null;
-                }
 
-                if (sortReason == SortReason.Reorder && changeSet.Count == 0) return null;
+                if (sortReason == SortReason.Reorder && (changeSet?.Count ?? 0) == 0) return null;
 
-                _sorted = new KeyValueCollection<TObject, TKey>((IReadOnlyCollection<KeyValuePair<TKey, TObject>>)_calculator.List, _comparer, sortReason, _optimisations);
+
+                _sorted = new KeyValueCollection<TObject, TKey>(_calculator.List.ToList(), _comparer, sortReason, _optimisations);
                 return new SortedChangeSet<TObject, TKey>(_sorted, changeSet);
             }
         }

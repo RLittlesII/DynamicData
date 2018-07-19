@@ -7,8 +7,8 @@ namespace DynamicData.Cache.Internal
 {
     internal class FilteredIndexCalculator<TObject, TKey>
     {
-        public IList<Change<TObject, TKey>> Calculate(IKeyValueCollection<TObject, TKey> currentItems,
-                                                      IKeyValueCollection<TObject, TKey> previousItems, 
+        public List<Change<TObject, TKey>> Calculate(KeyValueCollection<TObject, TKey> currentItems,
+                                                      KeyValueCollection<TObject, TKey> previousItems, 
                                                       IChangeSet<TObject, TKey> sourceUpdates)
         {
             if (currentItems.SortReason == SortReason.ComparerChanged || currentItems.SortReason== SortReason.InitialLoad)
@@ -28,7 +28,7 @@ namespace DynamicData.Cache.Internal
             var inbothKeys = previousItems.Intersect(currentItems, keyComparer)
                                           .Select(x => x.Key).ToHashSet();
 
-            var result = new List<Change<TObject, TKey>>();
+            var result = new List<Change<TObject, TKey>>(currentItems.Count);
             foreach (var remove in removes)
             {
                 int index = previousList.IndexOf(remove);

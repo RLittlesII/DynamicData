@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Linq;
 
@@ -35,8 +34,8 @@ namespace DynamicData.Cache.Internal
         private sealed class Virtualiser
         {
             private readonly FilteredIndexCalculator<TObject, TKey> _changedCalculator = new FilteredIndexCalculator<TObject, TKey>();
-            private IKeyValueCollection<TObject, TKey> _all = new KeyValueCollection<TObject, TKey>();
-            private IKeyValueCollection<TObject, TKey> _current = new KeyValueCollection<TObject, TKey>();
+            private KeyValueCollection<TObject, TKey> _all = new KeyValueCollection<TObject, TKey>();
+            private KeyValueCollection<TObject, TKey> _current = new KeyValueCollection<TObject, TKey>();
             private IVirtualRequest _parameters;
             private bool _isLoaded;
 
@@ -70,11 +69,11 @@ namespace DynamicData.Cache.Internal
                 if (_isLoaded == false) return null;
 
                 var previous = _current;
-                var virualised = _all.Skip(_parameters.StartIndex)
+                var virtualised = _all.Skip(_parameters.StartIndex)
                                      .Take(_parameters.Size)
-                                     .ToImmutableList();
+                                     .ToList();
 
-                _current = new KeyValueCollection<TObject, TKey>(virualised, _all.Comparer, updates?.SortedItems.SortReason ?? SortReason.DataChanged, _all.Optimisations);
+                _current = new KeyValueCollection<TObject, TKey>(virtualised, _all.Comparer, updates?.SortedItems.SortReason ?? SortReason.DataChanged, _all.Optimisations);
 
                 ////check for changes within the current virtualised page.  Notify if there have been changes or if the overall count has changed
                 var notifications = _changedCalculator.Calculate(_current, previous, updates);

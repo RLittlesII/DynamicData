@@ -9,10 +9,10 @@ namespace DynamicData
     {
         public new static readonly ISortedChangeSet<TObject, TKey> Empty = new SortedChangeSet<TObject, TKey>();
         
-        public IKeyValueCollection<TObject, TKey> SortedItems { get; }
+        public KeyValueCollection<TObject, TKey> SortedItems { get; }
 
 
-        public SortedChangeSet(IKeyValueCollection<TObject, TKey> sortedItems, IEnumerable<Change<TObject, TKey>> updates)
+        public SortedChangeSet(KeyValueCollection<TObject, TKey> sortedItems, IEnumerable<Change<TObject, TKey>> updates)
             : base(updates)
         {
             SortedItems = sortedItems;

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DynamicData.Cache.Internal;
 using DynamicData.Operators;
+
 // ReSharper disable once CheckNamespace
 namespace DynamicData
 {
@@ -10,11 +11,11 @@ namespace DynamicData
         public new static readonly IPagedChangeSet<TObject, TKey> Empty = new PagedChangeSet<TObject, TKey>();
 
 
-        public IKeyValueCollection<TObject, TKey> SortedItems { get; }
+        public KeyValueCollection<TObject, TKey> SortedItems { get; }
         public IPageResponse Response { get; }
 
 
-        public PagedChangeSet(IKeyValueCollection<TObject, TKey> sortedItems, IEnumerable<Change<TObject, TKey>> updates, IPageResponse response)
+        public PagedChangeSet(KeyValueCollection<TObject, TKey> sortedItems, IEnumerable<Change<TObject, TKey>> updates, IPageResponse response)
             : base(updates)
         {
             Response = response;

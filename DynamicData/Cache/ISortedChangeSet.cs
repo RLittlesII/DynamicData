@@ -1,3 +1,5 @@
+using DynamicData.Cache.Internal;
+
 // ReSharper disable once CheckNamespace
 namespace DynamicData
 {
@@ -11,6 +13,6 @@ namespace DynamicData
         /// <summary>
         /// All cached items in sort order
         /// </summary>
-        IKeyValueCollection<TObject, TKey> SortedItems { get; }
+        KeyValueCollection<TObject, TKey> SortedItems { get; }
     }
 }

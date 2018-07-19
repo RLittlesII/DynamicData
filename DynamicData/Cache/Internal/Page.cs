@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Linq;
 using DynamicData.Annotations;
 namespace DynamicData.Cache.Internal
 {
-    internal class Page<TObject, TKey>
+    internal sealed class Page<TObject, TKey>
     {
         private readonly IObservable<ISortedChangeSet<TObject, TKey>> _source;
         private readonly IObservable<IPageRequest> _pageRequests;
@@ -32,8 +31,8 @@ namespace DynamicData.Cache.Internal
 
         private sealed class Paginator
         {
-            private IKeyValueCollection<TObject, TKey> _all = new KeyValueCollection<TObject, TKey>();
-            private IKeyValueCollection<TObject, TKey> _current = new KeyValueCollection<TObject, TKey>();
+            private KeyValueCollection<TObject, TKey> _all = new KeyValueCollection<TObject, TKey>();
+            private KeyValueCollection<TObject, TKey> _current = new KeyValueCollection<TObject, TKey>();
             private IPageRequest _request = null;
             private readonly FilteredIndexCalculator<TObject, TKey> _changedCalculator = new FilteredIndexCalculator<TObject, TKey>();
             private bool _isLoaded;
@@ -79,7 +78,7 @@ namespace DynamicData.Cache.Internal
 
                 var paged = _all.Skip(skip)
                     .Take(_request.Size)
-                    .ToImmutableList();
+                    .ToList();
 
                 _current = new KeyValueCollection<TObject, TKey>(paged, _all.Comparer, updates?.SortedItems.SortReason ?? SortReason.DataChanged, _all.Optimisations);
 
